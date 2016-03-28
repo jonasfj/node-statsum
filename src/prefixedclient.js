@@ -12,24 +12,24 @@ class PrefixedStatsumClient {
   count(key, count = 1) {
     utils.iterateKey(key, k => {
       k = utils.joinKeys(this._prefix, k);
-      if (this._parent._countMetrics[k] === undefined) {
+      if (this._parent._counters[k] === undefined) {
         this._parent._dataPoints += 1;
-        this._parent._countMetrics[k] = count;
+        this._parent._counters[k] = count;
       } else {
-        this._parent._countMetrics[k] += count;
+        this._parent._counters[k] += count;
       }
     });
     this._parent._scheduleFlush();
   }
 
-  value(key, value) {
+  measure(key, value) {
     utils.iterateKey(key, k => {
       k = utils.joinKeys(this._prefix, k);
       this._parent._dataPoints += 1;
-      if (this._parent._valueMetrics[k] === undefined) {
-        this._parent._valueMetrics[k] = [value];
+      if (this._parent._measures[k] === undefined) {
+        this._parent._measures[k] = [value];
       } else {
-        this._parent._valueMetrics[k].push(value);
+        this._parent._measures[k].push(value);
       }
     });
     this._parent._scheduleFlush();

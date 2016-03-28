@@ -41,34 +41,34 @@ class StatsumClient extends events.EventEmitter {
     assert(typeof(options.maxDataPoints) === 'number',
            'maxDataPoints must be a number');
     options.minDelay = Math.min(options.minDelay, options.maxDelay);
-    this._countMetrics = {};
-    this._valueMetrics = {};
+    this._counters = {};
+    this._measures = {};
     this._flushTimer = null;
     this._dataPoints = 0;
   }
 
-  /** Increment counter metric for `key` with `count` */
+  /** Increment counter for `key` with `count` */
   count(key, count = 1) {
     utils.iterateKey(key, k => {
-      if (this._countMetrics[k] === undefined) {
+      if (this._counters[k] === undefined) {
         // A counter is only one data-point when it's increment further
         this._dataPoints += 1;
-        this._countMetrics[k] = count;
+        this._counters[k] = count;
       } else {
-        this._countMetrics[k] += count;
+        this._counters[k] += count;
       }
     });
     this._scheduleFlush();
   }
 
-  /** Add `value` to value-metric for `key` */
-  value(key, value) {
+  /** Add `value` to measure for `key` */
+  measure(key, value) {
     utils.iterateKey(key, k => {
       this._dataPoints += 1;
-      if (this._valueMetrics[k] === undefined) {
-        this._valueMetrics[k] = [value];
+      if (this._measures[k] === undefined) {
+        this._measures[k] = [value];
       } else {
-        this._valueMetrics[k].push(value);
+        this._measures[k].push(value);
       }
     });
     this._scheduleFlush();
@@ -90,27 +90,22 @@ class StatsumClient extends events.EventEmitter {
 
     // Construct the payload
     let payload = {
-      countMetrics: _.map(this._countMetrics, (v, k) => {return {k, v}}),
-      valueMetrics: _.map(this._valueMetrics, (v, k) => {return {k, v}}),
+      counters: _.map(this._counters, (v, k) => {return {k, v}}),
+      measures: _.map(this._measures, (v, k) => {return {k, v}}),
     };
     // Nice to have stats for debugging (doesn't really cost anything)
     let dataPoints = this._dataPoints;
-    let dimensionality = (
-      payload.countMetrics.length +
-      payload.valueMetrics.length
-    );
 
     // Reset state
-    this._countMetrics  = {};
-    this._valueMetrics  = {};
-    this._dataPoints    = 0;
+    this._counters    = {};
+    this._measures    = {};
+    this._dataPoints  = 0;
 
     // Send payload
     try {
       debug(
         'Submitting %s data-points with dimensionality %s to project: %s',
-        dataPoints,
-        payload.countMetrics.length + payload.valueMetrics.length,
+        dataPoints, payload.counters.length + payload.measures.length,
         this._options.project,
       );
       await sendDataPoints(this._options, payload);

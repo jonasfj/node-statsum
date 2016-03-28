@@ -24,7 +24,7 @@ if (msgpack) {
 
 /** Send data-point to statsum */
 let sendDataPoints = async (options, payload) => {
-  let url = urljoin(options.baseUrl, 'data', options.project);
+  let url = urljoin(options.baseUrl, 'v1/project', options.project);
   try {
     debug('Submitting data-point to: %s', url);
     let res = await got(url, {

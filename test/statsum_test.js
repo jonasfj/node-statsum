@@ -55,54 +55,54 @@ suite('statsum', () => {
 
     statsum.count('my-counter', 10);
     await statsum.flush();
-    assert(payload.countMetrics, 'missing countMetrics');
-    assert(payload.countMetrics.length === 1, 'wrong number of entries');
-    assert(payload.countMetrics[0], 'missing entry');
-    assert(payload.countMetrics[0].k === 'my-counter', 'missing my-counter');
-    assert(payload.countMetrics[0].v === 10, 'wrong count');
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my-counter', 'missing my-counter');
+    assert(payload.counters[0].v === 10, 'wrong count');
 
     statsum.count('my-counter2', 2);
     statsum.count('my-counter2', 5);
     await statsum.flush();
-    assert(payload.countMetrics, 'missing countMetrics');
-    assert(payload.countMetrics.length === 1, 'wrong number of entries');
-    assert(payload.countMetrics[0], 'missing entry');
-    assert(payload.countMetrics[0].k === 'my-counter2', 'missing my-counter2');
-    assert(payload.countMetrics[0].v === 7, 'wrong count');
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my-counter2', 'missing my-counter2');
+    assert(payload.counters[0].v === 7, 'wrong count');
   });
 
   test('value()', async () => {
     let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
 
-    statsum.value('my-timer', 10);
+    statsum.measure('my-timer', 10);
     await statsum.flush();
-    assert(payload.valueMetrics, 'missing valueMetrics');
-    assert(payload.valueMetrics.length === 1, 'wrong number of entries');
-    assert(payload.valueMetrics[0], 'missing entry');
-    assert(payload.valueMetrics[0].k === 'my-timer', 'missing my-timer');
-    assert(payload.valueMetrics[0].v.length === 1, 'expected 1 value');
-    assert(payload.valueMetrics[0].v[0] === 10, 'wrong value');
+    assert(payload.measures, 'missing measures');
+    assert(payload.measures.length === 1, 'wrong number of entries');
+    assert(payload.measures[0], 'missing entry');
+    assert(payload.measures[0].k === 'my-timer', 'missing my-timer');
+    assert(payload.measures[0].v.length === 1, 'expected 1 value');
+    assert(payload.measures[0].v[0] === 10, 'wrong value');
 
-    statsum.value('my-timer2', 2);
-    statsum.value('my-timer2', 5);
+    statsum.measure('my-timer2', 2);
+    statsum.measure('my-timer2', 5);
     await statsum.flush();
-    assert(payload.valueMetrics, 'missing valueMetrics');
-    assert(payload.valueMetrics.length === 1, 'wrong number of entries');
-    assert(payload.valueMetrics[0], 'missing entry');
-    assert(payload.valueMetrics[0].k === 'my-timer2', 'missing my-timer2');
-    assert(payload.valueMetrics[0].v.length === 2, 'expected 2 values');
-    assert(payload.valueMetrics[0].v[0] === 2, 'wrong value');
-    assert(payload.valueMetrics[0].v[1] === 5, 'wrong value');
+    assert(payload.measures, 'missing measures');
+    assert(payload.measures.length === 1, 'wrong number of entries');
+    assert(payload.measures[0], 'missing entry');
+    assert(payload.measures[0].k === 'my-timer2', 'missing my-timer2');
+    assert(payload.measures[0].v.length === 2, 'expected 2 values');
+    assert(payload.measures[0].v[0] === 2, 'wrong value');
+    assert(payload.measures[0].v[1] === 5, 'wrong value');
   });
 
   test('value() w. tags', async () => {
     let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
 
-    statsum.value({tag1: 'v1', tag2: 'v2'}, 5);
-    statsum.value({tag1: 'v1', tag2: 'v1'}, 5);
+    statsum.measure({tag1: 'v1', tag2: 'v2'}, 5);
+    statsum.measure({tag1: 'v1', tag2: 'v1'}, 5);
     await statsum.flush();
-    assert(payload.valueMetrics, 'missing valueMetrics');
-    assert(payload.valueMetrics.length === 6, 'wrong number of entries');
+    assert(payload.measures, 'missing measures');
+    assert(payload.measures.length === 6, 'wrong number of entries');
     assert(_.every([
       'tag1:v1.tag2:v2',
       'all-tag1.tag2:v2',
@@ -110,11 +110,11 @@ suite('statsum', () => {
       'all-tag1.tag2:v1',
       'tag1:v1.all-tag2',
       'all-tag1.all-tag2',
-    ], key => _.includes(payload.valueMetrics.map(e => e.k), key)));
-    assert(_.find(payload.valueMetrics, {
+    ], key => _.includes(payload.measures.map(e => e.k), key)));
+    assert(_.find(payload.measures, {
       k: 'tag1:v1.tag2:v2',
     }).v.length === 1);
-    assert(_.find(payload.valueMetrics, {
+    assert(_.find(payload.measures, {
       k: 'all-tag1.all-tag2',
     }).v.length === 2);
   });
@@ -125,45 +125,45 @@ suite('statsum', () => {
 
     statsum.count('counter', 10);
     await statsum.flush();
-    assert(payload.countMetrics, 'missing countMetrics');
-    assert(payload.countMetrics.length === 1, 'wrong number of entries');
-    assert(payload.countMetrics[0], 'missing entry');
-    assert(payload.countMetrics[0].k === 'my.counter', 'missing my.counter');
-    assert(payload.countMetrics[0].v === 10, 'wrong count');
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my.counter', 'missing my.counter');
+    assert(payload.counters[0].v === 10, 'wrong count');
 
     statsum.count('counter2', 2);
     statsum.count('counter2', 5);
     await statsum.flush();
-    assert(payload.countMetrics, 'missing countMetrics');
-    assert(payload.countMetrics.length === 1, 'wrong number of entries');
-    assert(payload.countMetrics[0], 'missing entry');
-    assert(payload.countMetrics[0].k === 'my.counter2', 'missing my.counter2');
-    assert(payload.countMetrics[0].v === 7, 'wrong count');
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my.counter2', 'missing my.counter2');
+    assert(payload.counters[0].v === 7, 'wrong count');
   });
 
-  test('prefix().value()', async () => {
+  test('prefix().measure()', async () => {
     let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
     statsum = statsum.prefix('my')
 
-    statsum.value('timer', 10);
+    statsum.measure('timer', 10);
     await statsum.flush();
-    assert(payload.valueMetrics, 'missing valueMetrics');
-    assert(payload.valueMetrics.length === 1, 'wrong number of entries');
-    assert(payload.valueMetrics[0], 'missing entry');
-    assert(payload.valueMetrics[0].k === 'my.timer', 'missing my.timer');
-    assert(payload.valueMetrics[0].v.length === 1, 'expected 1 value');
-    assert(payload.valueMetrics[0].v[0] === 10, 'wrong value');
+    assert(payload.measures, 'missing measures');
+    assert(payload.measures.length === 1, 'wrong number of entries');
+    assert(payload.measures[0], 'missing entry');
+    assert(payload.measures[0].k === 'my.timer', 'missing my.timer');
+    assert(payload.measures[0].v.length === 1, 'expected 1 value');
+    assert(payload.measures[0].v[0] === 10, 'wrong value');
 
-    statsum.value('timer2', 2);
-    statsum.value('timer2', 5);
+    statsum.measure('timer2', 2);
+    statsum.measure('timer2', 5);
     await statsum.flush();
-    assert(payload.valueMetrics, 'missing valueMetrics');
-    assert(payload.valueMetrics.length === 1, 'wrong number of entries');
-    assert(payload.valueMetrics[0], 'missing entry');
-    assert(payload.valueMetrics[0].k === 'my.timer2', 'missing my.timer2');
-    assert(payload.valueMetrics[0].v.length === 2, 'expected 2 values');
-    assert(payload.valueMetrics[0].v[0] === 2, 'wrong value');
-    assert(payload.valueMetrics[0].v[1] === 5, 'wrong value');
+    assert(payload.measures, 'missing measures');
+    assert(payload.measures.length === 1, 'wrong number of entries');
+    assert(payload.measures[0], 'missing entry');
+    assert(payload.measures[0].k === 'my.timer2', 'missing my.timer2');
+    assert(payload.measures[0].v.length === 2, 'expected 2 values');
+    assert(payload.measures[0].v[0] === 2, 'wrong value');
+    assert(payload.measures[0].v[1] === 5, 'wrong value');
   });
 
   test('prefix().prefix()', async () => {
@@ -173,10 +173,10 @@ suite('statsum', () => {
     statsum.count('2', 10);
     statsum.count('2', 2);
     await statsum.flush();
-    assert(payload.countMetrics, 'missing countMetrics');
-    assert(payload.countMetrics.length === 1, 'wrong number of entries');
-    assert(payload.countMetrics[0], 'missing entry');
-    assert(payload.countMetrics[0].k === 'my.count.2', 'missing my.count.2');
-    assert(payload.countMetrics[0].v === 12, 'wrong count');
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my.count.2', 'missing my.count.2');
+    assert(payload.counters[0].v === 12, 'wrong count');
   });
 });
