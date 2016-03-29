@@ -50,6 +50,28 @@ suite('statsum', () => {
     assert(result.exp > Date.now() / 1000 + 60);
   });
 
+  test('getToken', async () => {
+    let getTokenCalls = 0;
+    let delay = 0;
+    let statsum = new Statsum({project: 'test', getToken() {
+      getTokenCalls +=1;
+      return new Promise({token: 'KEY', expires: new Date(Date.now() + delay)});
+    }, baseUrl});
+
+    statsum.count('my-counter', 10);
+    assert(getTokenCalls === 0);
+    await statsum.flush();
+    await new Promise(accept => setTimeout(accept, 100));
+    assert(getTokenCalls === 1);
+
+    delay = 500;
+    statsum.count('my-counter', 10);
+    await statsum.flush();
+    assert(getTokenCalls === 2);
+    await new Promise(accept => setTimeout(accept, 100));
+    assert(getTokenCalls === 2);
+  });
+
   test('count()', async () => {
     let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
 

@@ -15,7 +15,8 @@ class StatsumClient extends events.EventEmitter {
    * ```js
    * {
    *   project:       '...',                  // Project to submit for
-   *   token:         '...',                  // JWT token for project
+   *   token:         '...',                  // JWT token (if not getToken)
+   *   getToken:      () => {token, expires}, // Async function for token
    *   baseUrl:       'https://example.com/', // baseUrl for the server
    *   maxDataPoints: 10000,                  // Max data-points before flushing
    *   maxDelay:      90,                     // Max delay before flush (s)
@@ -33,7 +34,8 @@ class StatsumClient extends events.EventEmitter {
       emitErrors:     false,
     });
     assert(options.project, 'project is required');
-    assert(options.token, 'token is required');
+    assert(options.token || options.getToken instanceof Function,
+           'token or getToken is required');
     assert(options.baseUrl, 'baseUrl is required');
     assert(typeof(options.minDelay) === 'number', 'minDelay must be a number');
     assert(typeof(options.maxDelay) === 'number', 'maxDelay must be a number');
