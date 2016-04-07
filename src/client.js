@@ -11,13 +11,20 @@ class StatsumClient extends events.EventEmitter {
   /**
    * Create a statsum client.
    *
-   * Óptions:
+   * Configurer: A function that returns an object like
    * ```js
    * {
    *   project:       '...',                  // Project to submit for
-   *   token:         '...',                  // JWT token (if not getToken)
-   *   getToken:      () => {token, expires}, // Async function for token
+   *   token:         '...',                  // JWT token
    *   baseUrl:       'https://example.com/', // baseUrl for the server
+   *   expires:       'date-time',            // Time at which the token expires
+   * }
+   * ```
+   *
+   * Options:
+   * ```js
+   * {
+   *   project:       '...',                  // Project to submit for
    *   maxDataPoints: 10000,                  // Max data-points before flushing
    *   maxDelay:      90,                     // Max delay before flush (s)
    *   minDelay:      30,                     // Min delay before flush (s)
@@ -25,7 +32,7 @@ class StatsumClient extends events.EventEmitter {
    * }
    * ```
    */
-  constructor(options) {
+  constructor(configurer, options) {
     super();
     this._options = options = _.defaults({}, options || {}, {
       maxDataPoints:  10000,
@@ -34,9 +41,6 @@ class StatsumClient extends events.EventEmitter {
       emitErrors:     false,
     });
     assert(options.project, 'project is required');
-    assert(options.token || options.getToken instanceof Function,
-           'token or getToken is required');
-    assert(options.baseUrl, 'baseUrl is required');
     assert(typeof(options.minDelay) === 'number', 'minDelay must be a number');
     assert(typeof(options.maxDelay) === 'number', 'maxDelay must be a number');
     assert(options.maxDelay >= 30, 'maxDelay must be > 30 seconds');
@@ -47,6 +51,7 @@ class StatsumClient extends events.EventEmitter {
     this._measures = {};
     this._flushTimer = null;
     this._dataPoints = 0;
+    this._configurer = configurer;
   }
 
   /** Increment counter for `key` with `count` */
@@ -110,7 +115,7 @@ class StatsumClient extends events.EventEmitter {
         dataPoints, payload.counters.length + payload.measures.length,
         this._options.project,
       );
-      await sendDataPoints(this._options, payload);
+      await sendDataPoints(this._configurer, this._options, payload);
     } catch (err) {
       debug('Failed to send data-points with error: %s, stack: %j', err, err);
       if (this._options.emitErrors) {

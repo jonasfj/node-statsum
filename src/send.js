@@ -1,3 +1,4 @@
+let assert  = require('assert');
 let urljoin = require('url-join');
 let got     = require('got');
 let debug   = require('debug')('statsum');
@@ -23,19 +24,16 @@ if (msgpack) {
 }
 
 /** Send data-point to statsum */
-let sendDataPoints = async (options, payload) => {
-  // Get authentication token
-  let token = options.token;
-  if (!token || options.tokenExpires < new Date()) {
-    // If we have one, or it's expired, we get a new one
-    let result = await options.getToken();
-    if (!result.token || !result.expires) {
-      let err = new Error('getToken() must return {token, expires}');
-      err.result = result;
-      throw err;
-    }
+let sendDataPoints = async (configurer, options, payload) => {
+
+  if (!options.token || options.tokenExpires < new Date()) {
+    let result = await configurer(options.project);
+    assert(result.token, 'token is required from the configurer');
+    assert(result.baseUrl, 'baseUrl is required from the configurer');
+    assert(result.expires, 'expires is required from the configurer');
     options.token = result.token;
     options.tokenExpires = new Date(result.expires);
+    options.baseUrl = result.baseUrl;
   }
 
   let url = urljoin(options.baseUrl, 'v1/project', options.project);

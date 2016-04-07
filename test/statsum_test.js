@@ -17,9 +17,11 @@ suite('statsum', () => {
     deserialize = (data) => msgpack.unpack(data);
   }
 
+
   let server = null;
   let baseUrl = null;
   let payload = null;
+  let configurer = null;
   before(async () => {
     server = http.createServer();
     server.on('request', async (req, res) => {
@@ -37,6 +39,13 @@ suite('statsum', () => {
       server.listen();
     });
     baseUrl = 'http://localhost:' + server.address().port;
+
+    configurer = async (project) => { return {
+      project,
+      baseUrl,
+      token: 'KEY',
+      expires: new Date().toJSON()
+    }};
   });
   after(async () => {
     server.close();
@@ -50,30 +59,8 @@ suite('statsum', () => {
     assert(result.exp > Date.now() / 1000 + 60);
   });
 
-  test('getToken', async () => {
-    let getTokenCalls = 0;
-    let delay = 0;
-    let statsum = new Statsum({project: 'test', getToken() {
-      getTokenCalls +=1;
-      return new Promise({token: 'KEY', expires: new Date(Date.now() + delay)});
-    }, baseUrl});
-
-    statsum.count('my-counter', 10);
-    assert(getTokenCalls === 0);
-    await statsum.flush();
-    await new Promise(accept => setTimeout(accept, 100));
-    assert(getTokenCalls === 1);
-
-    delay = 500;
-    statsum.count('my-counter', 10);
-    await statsum.flush();
-    assert(getTokenCalls === 2);
-    await new Promise(accept => setTimeout(accept, 100));
-    assert(getTokenCalls === 2);
-  });
-
   test('count()', async () => {
-    let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
+    let statsum = new Statsum(configurer, {project: 'test'});
 
     statsum.count('my-counter', 10);
     await statsum.flush();
@@ -94,7 +81,7 @@ suite('statsum', () => {
   });
 
   test('value()', async () => {
-    let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
+    let statsum = new Statsum(configurer, {project: 'test'});
 
     statsum.measure('my-timer', 10);
     await statsum.flush();
@@ -118,7 +105,7 @@ suite('statsum', () => {
   });
 
   test('value() w. tags', async () => {
-    let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
+    let statsum = new Statsum(configurer, {project: 'test'});
 
     statsum.measure({tag1: 'v1', tag2: 'v2'}, 5);
     statsum.measure({tag1: 'v1', tag2: 'v1'}, 5);
@@ -142,7 +129,7 @@ suite('statsum', () => {
   });
 
   test('prefix().count()', async () => {
-    let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
+    let statsum = new Statsum(configurer, {project: 'test'});
     statsum = statsum.prefix('my')
 
     statsum.count('counter', 10);
@@ -164,7 +151,7 @@ suite('statsum', () => {
   });
 
   test('prefix().measure()', async () => {
-    let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
+    let statsum = new Statsum(configurer, {project: 'test'});
     statsum = statsum.prefix('my')
 
     statsum.measure('timer', 10);
@@ -189,7 +176,7 @@ suite('statsum', () => {
   });
 
   test('prefix().prefix()', async () => {
-    let statsum = new Statsum({project: 'test', token: 'KEY', baseUrl});
+    let statsum = new Statsum(configurer, {project: 'test'});
     statsum = statsum.prefix('my').prefix('count');
 
     statsum.count('2', 10);
