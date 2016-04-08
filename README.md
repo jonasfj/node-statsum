@@ -8,15 +8,14 @@ A Javascript client library for [statsum](https://github.com/jonasfj/statsum).
 
 let Statsum = require('statsum');
 
-// Create a project token
-let token = Statsum.createToken('my-project', 'SECRET', '24h');
-
 // Create a client object
-let statsum = new Statsum({
-  project:  'my-project',
-  token:    token,
-  baseUrl:  'https://statsum.example.com',
-});
+let configurer = async (project) => { return {
+  project: 'example-project',
+  baseUrl: 'https://example.com',
+  token: 'KEY',
+  expires: new Date().toJSON()
+}};
+let statsum = new Statsum(configurer, {project: 'test'});
 
 // Send metrics
 statsum.count('my-counter', 1);

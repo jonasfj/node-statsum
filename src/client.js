@@ -11,7 +11,7 @@ class StatsumClient extends events.EventEmitter {
   /**
    * Create a statsum client.
    *
-   * Configurer: A function that returns an object like
+   * Configurer: A function that must return an object with these specific keys
    * ```js
    * {
    *   project:       '...',                  // Project to submit for
