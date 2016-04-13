@@ -1,6 +1,6 @@
 {
   "name": "statsum",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "author": "Jonas Finnemann Jensen <jopsen@gmail.com>",
   "description": "Client library for statsum",
   "license": "MPL-2.0",
@@ -22,9 +22,6 @@
     "jsonwebtoken": "^5.7.0",
     "lodash": "^4.5.1",
     "url-join": "^0.0.1"
-  },
-  "optionalDependencies": {
-    "msgpack": "^1.0.2"
   },
   "devDependencies": {
     "babel-compile": "^1.0.0",

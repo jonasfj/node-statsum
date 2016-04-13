@@ -2,26 +2,10 @@ let assert  = require('assert');
 let urljoin = require('url-join');
 let got     = require('got');
 let debug   = require('debug')('statsum');
-let msgpack = null;
-try {
-  msgpack = require('msgpack');
-} catch (err) {
-  debug('Failed to load msgpack (optional dependency) falling back to json');
-}
 
-// Decide whether to use JSON or msgpack.
-// Note: msgpack is less bandwidth, but most importantly it is faster on the
-//       server. JSON is a tiny bit faster on node, but since we have many
-//       clients sending to one server we should optimize for fast server
-//       processing (the server is most likely to a bottleneck).
 let contentType = 'application/json';
 let serialize   = (data) => JSON.stringify(data);
 let deserialize = (data) => JSON.parse(data.toString('utf8'));
-if (msgpack) {
-  contentType = 'application/msgpack';
-  serialize   = (data) => msgpack.pack(data);
-  deserialize = (data) => msgpack.unpack(data);
-}
 
 /** Send data-point to statsum */
 let sendDataPoints = async (configurer, options, payload) => {

@@ -6,18 +6,8 @@ suite('statsum', () => {
   let getStream = require('get-stream');
   let _         = require('lodash');
   let debug     = require('debug')('statsum');
-  let msgpack = null;
-  try {
-    msgpack = require('msgpack');
-  } catch (err) {
-    debug('Failed to load msgpack (optional dependency) falling back to json');
-  }
+
   let deserialize = (data) => JSON.parse(data.toString('utf8'));
-  if (msgpack) {
-    deserialize = (data) => msgpack.unpack(data);
-  }
-
-
   let server = null;
   let baseUrl = null;
   let payload = null;
