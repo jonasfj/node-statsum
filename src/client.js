@@ -130,7 +130,7 @@ class StatsumClient extends events.EventEmitter {
     } else if (!this._flushTimer) {
       // Pick a random delay between minDelay and maxDelay
       let range = this._options.maxDelay - this._options.minDelay;
-      let delay = this._options.minDelay + Math.random() * range;
+      let delay = this._options.minDelay + Math.random() * range * 1000;
       this._flushTimer = setTimeout(() => this.flush(), delay);
     }
   }
