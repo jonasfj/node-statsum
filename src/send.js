@@ -7,6 +7,9 @@ let contentType = 'application/json';
 let serialize   = (data) => JSON.stringify(data);
 let deserialize = (data) => JSON.parse(data.toString('utf8'));
 
+/** Maximum number of retries */
+const MAX_RETRIES = 7;
+
 /** Send data-point to statsum */
 let sendDataPoints = async (configurer, options, payload) => {
 
@@ -23,7 +26,7 @@ let sendDataPoints = async (configurer, options, payload) => {
   let url = urljoin(options.baseUrl, 'v1/project', options.project);
   try {
     debug('Submitting data-point to: %s', url);
-    let res = await got(url, {
+    await got(url, {
       method:   'post',
       headers: {
         'content-type':   contentType,
@@ -32,8 +35,14 @@ let sendDataPoints = async (configurer, options, payload) => {
       },
       encoding: null,
       body:     serialize(payload),
-      timeout:  30 * 1000,
-      retries:  5,
+      timeout:  90 * 1000,
+      retries:  (iter, error) => {
+        if (iter > MAX_RETRIES) {
+          return 0;
+        }
+        const noise = Math.random() * 100;
+        return (1 << iter) * 1000 + noise;
+      },
     });
   } catch (err) {
     if (err && err.response && err.response.body) {
