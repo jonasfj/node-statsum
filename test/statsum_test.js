@@ -12,6 +12,8 @@ suite('statsum', () => {
   let baseUrl = null;
   let payload = null;
   let configurer = null;
+  let fail500 = 0;
+  let failConn = 0;
   before(async () => {
     server = http.createServer();
     server.on('request', async (req, res) => {
@@ -19,6 +21,19 @@ suite('statsum', () => {
       payload = null;
       if (req.method === 'POST' && req.headers.authorization === 'Bearer KEY') {
         payload = deserialize(await getStream.buffer(req));
+      }
+      if (failConn > 0) {
+        failConn--;
+        payload = null;
+        res.connection.destroy()
+        return;
+      }
+      if (fail500 > 0) {
+        fail500--;
+        payload = null;
+        res.writeHead(500);
+        res.end();
+        return;
       }
       res.writeHead(200);
       res.end();
@@ -52,6 +67,48 @@ suite('statsum', () => {
   test('count()', async () => {
     let statsum = new Statsum(configurer, {project: 'test'});
 
+    statsum.count('my-counter', 10);
+    await statsum.flush();
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my-counter', 'missing my-counter');
+    assert(payload.counters[0].v === 10, 'wrong count');
+
+    statsum.count('my-counter2', 2);
+    statsum.count('my-counter2', 5);
+    await statsum.flush();
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my-counter2', 'missing my-counter2');
+    assert(payload.counters[0].v === 7, 'wrong count');
+  });
+
+  test('count() w. retries 500', async () => {
+    let statsum = new Statsum(configurer, {project: 'test'});
+    fail500 = 3;
+    statsum.count('my-counter', 10);
+    await statsum.flush();
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my-counter', 'missing my-counter');
+    assert(payload.counters[0].v === 10, 'wrong count');
+
+    statsum.count('my-counter2', 2);
+    statsum.count('my-counter2', 5);
+    await statsum.flush();
+    assert(payload.counters, 'missing counters');
+    assert(payload.counters.length === 1, 'wrong number of entries');
+    assert(payload.counters[0], 'missing entry');
+    assert(payload.counters[0].k === 'my-counter2', 'missing my-counter2');
+    assert(payload.counters[0].v === 7, 'wrong count');
+  });
+
+  test('count() w. retries connection error', async () => {
+    let statsum = new Statsum(configurer, {project: 'test'});
+    failConn = 3;
     statsum.count('my-counter', 10);
     await statsum.flush();
     assert(payload.counters, 'missing counters');
