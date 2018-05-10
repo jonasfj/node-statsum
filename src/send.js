@@ -2,6 +2,7 @@ let assert  = require('assert');
 let urljoin = require('url-join');
 let got     = require('got');
 let debug   = require('debug')('statsum');
+let tcUrl   = require('taskcluster-lib-urls');
 let uuid    = require('uuid');
 let Promise = require('promise');
 
@@ -19,18 +20,18 @@ let sendDataPoints = async (configurer, options, payload) => {
   if (!options.token || options.tokenExpires < new Date()) {
     let result = await configurer(options.project);
     assert(result.token, 'token is required from the configurer');
-    assert(result.baseUrl, 'baseUrl is required from the configurer');
+    assert(result.rootUrl, 'rootUrl is required from the configurer');
     assert(result.expires, 'expires is required from the configurer');
     options.token = result.token;
     options.tokenExpires = new Date(result.expires);
-    options.baseUrl = result.baseUrl;
+    options.rootUrl = result.rootUrl;
   }
 
   // Use the same request-id for all retries
   let requestId = uuid.v4();
 
   // Submit metrics with retries
-  let url = urljoin(options.baseUrl, 'v1/project', options.project);
+  let url = tcUrl.api(options.rootUrl, 'statsum', 'v1', `project/${options.project}`);
   debug('Submitting data-points to: %s', url);
   let i = 0;
   while (true) {
