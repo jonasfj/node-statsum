@@ -1,10 +1,8 @@
 let assert  = require('assert');
-let urljoin = require('url-join');
 let got     = require('got');
 let debug   = require('debug')('statsum');
 let tcUrl   = require('taskcluster-lib-urls');
 let uuid    = require('uuid');
-let Promise = require('promise');
 
 let contentType = 'application/json';
 let serialize   = (data) => JSON.stringify(data);
