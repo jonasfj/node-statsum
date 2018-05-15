@@ -16,6 +16,7 @@ class StatsumClient extends events.EventEmitter {
    * {
    *   project:       '...',                  // Project to submit for
    *   token:         '...',                  // JWT token
+   *   baseUrl:       'https://example.com/', // baseUrl for the server
    *   expires:       'date-time',            // Time at which the token expires
    * }
    * ```
@@ -33,7 +34,6 @@ class StatsumClient extends events.EventEmitter {
    */
   constructor(configurer, options) {
     super();
-    assert(!options.baseUrl, 'baseUrl is deprecated as an option!');
     this._options = options = _.defaults({}, options || {}, {
       maxDataPoints:  10000,
       maxDelay:       90,

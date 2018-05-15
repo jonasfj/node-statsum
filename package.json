@@ -20,7 +20,7 @@
     "got": "^5.0.0",
     "jsonwebtoken": "^5.7.0",
     "lodash": "^4.5.1",
-    "taskcluster-lib-urls": "^1.0.0",
+    "urljoin": "^0.1.5",
     "uuid": "^2.0.2"
   },
   "devDependencies": {

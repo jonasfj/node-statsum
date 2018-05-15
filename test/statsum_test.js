@@ -9,7 +9,7 @@ suite('statsum', () => {
 
   let deserialize = (data) => JSON.parse(data.toString('utf8'));
   let server = null;
-  let rootUrl = null;
+  let baseUrl = null;
   let payload = null;
   let configurer = null;
   let fail500 = 0;
@@ -43,11 +43,11 @@ suite('statsum', () => {
       server.once('error', reject);
       server.listen();
     });
-    rootUrl = 'http://localhost:' + server.address().port;
+    baseUrl = 'http://localhost:' + server.address().port;
 
     configurer = async (project) => { return {
       project,
-      rootUrl,
+      baseUrl,
       token: 'KEY',
       expires: new Date().toJSON()
     }};

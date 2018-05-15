@@ -11,7 +11,7 @@ let Statsum = require('statsum');
 // Create a client object
 let configurer = async (project) => { return {
   project: 'example-project',
-  rootUrl: 'https://example.com',
+  baseUrl: 'https://example.com',
   token: 'KEY',
   expires: new Date().toJSON()
 }};
