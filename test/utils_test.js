@@ -1,5 +1,5 @@
 suite('utils', () => {
-  let utils = require('../lib/utils');
+  let utils = require('../src/utils');
   let assert = require('assert');
   let _ = require('lodash');
 
